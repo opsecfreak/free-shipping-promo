@@ -64,4 +64,4 @@ The plugin checks the public GitHub releases page for this plugin about twice a 
 
 This plugin does not collect, store, or transmit any personal data.
 
-Automatic updates: the plugin polls the public GitHub releases API (api.github.com) for the repository opsecfreak/mtsuav-free-shipping-promo, cached for 12 hours (1 hour after a failure), to learn whether a newer version is available. The request carries your site's WordPress version and home URL in the User-Agent header, as is standard for WordPress HTTP requests. No license keys, emails, or other personal data are sent. If the check fails, nothing happens and no update is offered.
+Automatic updates: the plugin polls the public GitHub releases API (api.github.com) for the repository opsecfreak/mtsuav-free-shipping-promo, cached for 12 hours (1 hour after a failure), to learn whether a newer version is available. The request carries a generic updater user-agent (MTSUAV-Updater plus your WordPress version). No site URL, license keys, emails, or other personal data are sent. If the check fails, nothing happens and no update is offered.

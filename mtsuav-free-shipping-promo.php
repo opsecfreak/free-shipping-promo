@@ -19,11 +19,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MTSUAV_UPDATER_SLUG', 'mtsuav-free-shipping-promo' );
-define( 'MTSUAV_UPDATER_REPO', 'opsecfreak/mtsuav-free-shipping-promo' );
-define( 'MTSUAV_UPDATER_VERSION', '1.0.0' );
-define( 'MTSUAV_UPDATER_FILE', __FILE__ );
-
 define( 'MTSUAV_FSP_VERSION', '1.0.0' );
 define( 'MTSUAV_FSP_FILE', __FILE__ );
 define( 'MTSUAV_FSP_PATH', plugin_dir_path( __FILE__ ) );
@@ -32,7 +27,7 @@ define( 'MTSUAV_FSP_OPTION', 'mtsuav_fsp_settings' );
 require_once MTSUAV_FSP_PATH . 'includes/class-mtsuav-updater.php';
 require_once MTSUAV_FSP_PATH . 'includes/class-mtsuav-tip-box.php';
 
-MTSUAV_Updater::init();
+MTSUAV_Updater::register( 'mtsuav-free-shipping-promo', 'opsecfreak/mtsuav-free-shipping-promo', MTSUAV_FSP_VERSION, __FILE__ );
 mtsuav_tip_box_init();
 
 /**
