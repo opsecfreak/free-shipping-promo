@@ -1,13 +1,13 @@
 <?php
 /**
- * Automatic Free Shipping method management for MTSUAV Free Shipping Promotion.
+ * Automatic Free Shipping method management for Free Shipping Promo for WooCommerce.
  *
  * When the "Manage Free Shipping methods automatically" setting is on, saving
  * settings ensures every shipping zone has a Free Shipping method whose
  * minimum order amount equals the threshold: created when missing, updated
  * when present. Pre-existing methods that require a coupon are left alone.
  *
- * @package MTSUAV_Free_Shipping_Promo
+ * @package FSP
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  * @param float $threshold Free shipping threshold.
  * @return int[] List of newly created instance IDs, keyed by zone ID.
  */
-function mtsuav_fsp_sync_free_shipping_methods( $threshold ) {
+function fsp_sync_free_shipping_methods( $threshold ) {
 	if ( ! class_exists( 'WC_Shipping_Zones' ) || ! class_exists( 'WC_Shipping_Zone' ) ) {
 		return array();
 	}
@@ -56,7 +56,7 @@ function mtsuav_fsp_sync_free_shipping_methods( $threshold ) {
 			if ( $instance_id ) {
 				$method = WC_Shipping_Zones::get_shipping_method( (int) $instance_id );
 				if ( $method && is_object( $method ) ) {
-					$method->update_option( 'title', __( 'Free Shipping', 'mtsuav-free-shipping-promo' ) );
+					$method->update_option( 'title', __( 'Free Shipping', 'free-shipping-promo' ) );
 					$method->update_option( 'requires', 'min_amount' );
 					$method->update_option( 'min_amount', (string) $threshold );
 					$created[ (int) $zone->get_id() ] = (int) $instance_id;
@@ -66,7 +66,7 @@ function mtsuav_fsp_sync_free_shipping_methods( $threshold ) {
 	}
 
 	if ( ! empty( $created ) ) {
-		$settings  = mtsuav_fsp_get_settings();
+		$settings  = fsp_get_settings();
 		$existing  = isset( $settings['auto_created_instances'] ) && is_array( $settings['auto_created_instances'] )
 			? $settings['auto_created_instances']
 			: array();
@@ -77,7 +77,7 @@ function mtsuav_fsp_sync_free_shipping_methods( $threshold ) {
 			);
 		}
 		$settings['auto_created_instances'] = array_values( $existing );
-		update_option( MTSUAV_FSP_OPTION, $settings );
+		update_option( FSP_OPTION, $settings );
 	}
 
 	return $created;

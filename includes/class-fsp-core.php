@@ -1,10 +1,10 @@
 <?php
 /**
- * Core logic for MTSUAV Free Shipping Promotion: settings storage,
+ * Core logic for Free Shipping Promo for WooCommerce: settings storage,
  * qualifying-subtotal calculation, progress bar rendering, shortcode,
  * and frontend hooks.
  *
- * @package MTSUAV_Free_Shipping_Promo
+ * @package FSP
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @return array
  */
-function mtsuav_fsp_default_settings() {
+function fsp_default_settings() {
 	return array(
 		'enabled'                    => 'yes',
 		'threshold'                  => '75',
@@ -44,12 +44,12 @@ function mtsuav_fsp_default_settings() {
  *
  * @return array
  */
-function mtsuav_fsp_get_settings() {
-	$saved = get_option( MTSUAV_FSP_OPTION, array() );
+function fsp_get_settings() {
+	$saved = get_option( FSP_OPTION, array() );
 	if ( ! is_array( $saved ) ) {
 		$saved = array();
 	}
-	return wp_parse_args( $saved, mtsuav_fsp_default_settings() );
+	return wp_parse_args( $saved, fsp_default_settings() );
 }
 
 /**
@@ -58,7 +58,7 @@ function mtsuav_fsp_get_settings() {
  * @param mixed $value Raw value.
  * @return int[]
  */
-function mtsuav_fsp_sanitize_id_list( $value ) {
+function fsp_sanitize_id_list( $value ) {
 	if ( ! is_array( $value ) ) {
 		return array();
 	}
@@ -79,11 +79,11 @@ function mtsuav_fsp_sanitize_id_list( $value ) {
  * @param array $raw Raw submitted values (already unslashed).
  * @return array
  */
-function mtsuav_fsp_sanitize_settings( $raw ) {
+function fsp_sanitize_settings( $raw ) {
 	if ( ! is_array( $raw ) ) {
 		$raw = array();
 	}
-	$defaults = mtsuav_fsp_default_settings();
+	$defaults = fsp_default_settings();
 	$s        = array();
 
 	$s['enabled']          = isset( $raw['enabled'] ) ? 'yes' : 'no';
@@ -125,11 +125,11 @@ function mtsuav_fsp_sanitize_settings( $raw ) {
 		? $raw['subtotal_basis']
 		: $defaults['subtotal_basis'];
 
-	$s['include_categories'] = mtsuav_fsp_sanitize_id_list( isset( $raw['include_categories'] ) ? $raw['include_categories'] : array() );
-	$s['exclude_categories'] = mtsuav_fsp_sanitize_id_list( isset( $raw['exclude_categories'] ) ? $raw['exclude_categories'] : array() );
+	$s['include_categories'] = fsp_sanitize_id_list( isset( $raw['include_categories'] ) ? $raw['include_categories'] : array() );
+	$s['exclude_categories'] = fsp_sanitize_id_list( isset( $raw['exclude_categories'] ) ? $raw['exclude_categories'] : array() );
 
 	// auto_created_instances is managed internally, never from the form.
-	$old = mtsuav_fsp_get_settings();
+	$old = fsp_get_settings();
 	$s['auto_created_instances'] = isset( $old['auto_created_instances'] ) && is_array( $old['auto_created_instances'] )
 		? $old['auto_created_instances']
 		: array();
@@ -143,7 +143,7 @@ function mtsuav_fsp_sanitize_settings( $raw ) {
  * @param WC_Product $product Product object.
  * @return int[]
  */
-function mtsuav_fsp_product_category_ids( $product ) {
+function fsp_product_category_ids( $product ) {
 	$cat_ids = $product->get_category_ids();
 	if ( empty( $cat_ids ) && $product->is_type( 'variation' ) ) {
 		$parent = wc_get_product( $product->get_parent_id() );
@@ -161,11 +161,11 @@ function mtsuav_fsp_product_category_ids( $product ) {
  * @param array      $settings Settings array.
  * @return bool
  */
-function mtsuav_fsp_item_qualifies( $product, $settings ) {
+function fsp_item_qualifies( $product, $settings ) {
 	if ( 'yes' === $settings['exclude_sale_items'] && $product->is_on_sale() ) {
 		return false;
 	}
-	$cat_ids = mtsuav_fsp_product_category_ids( $product );
+	$cat_ids = fsp_product_category_ids( $product );
 	if ( ! empty( $settings['include_categories'] ) && empty( array_intersect( $cat_ids, $settings['include_categories'] ) ) ) {
 		return false;
 	}
@@ -184,9 +184,9 @@ function mtsuav_fsp_item_qualifies( $product, $settings ) {
  * @param array|null $settings Optional settings array.
  * @return float
  */
-function mtsuav_fsp_get_qualifying_total( $settings = null ) {
+function fsp_get_qualifying_total( $settings = null ) {
 	if ( null === $settings ) {
-		$settings = mtsuav_fsp_get_settings();
+		$settings = fsp_get_settings();
 	}
 	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
 		return 0.0;
@@ -198,7 +198,7 @@ function mtsuav_fsp_get_qualifying_total( $settings = null ) {
 		if ( empty( $item['data'] ) || ! $item['data'] instanceof WC_Product ) {
 			continue;
 		}
-		if ( ! mtsuav_fsp_item_qualifies( $item['data'], $settings ) ) {
+		if ( ! fsp_item_qualifies( $item['data'], $settings ) ) {
 			continue;
 		}
 		$line = ( 'before_discounts' === $settings['subtotal_basis'] )
@@ -224,7 +224,7 @@ function mtsuav_fsp_get_qualifying_total( $settings = null ) {
  * @param array $settings  Settings array.
  * @return string
  */
-function mtsuav_fsp_bar_html( $total, $threshold, $settings ) {
+function fsp_bar_html( $total, $threshold, $settings ) {
 	$total     = (float) $total;
 	$threshold = (float) $threshold;
 	if ( $threshold <= 0 ) {
@@ -249,11 +249,11 @@ function mtsuav_fsp_bar_html( $total, $threshold, $settings ) {
 	$pct_s  = esc_attr( number_format( $pct, 1 ) );
 
 	// $message was sanitized with wp_kses_post on save; wc_price() output is safe.
-	return '<div class="mtsuav-fsp-bar-wrap" style="margin:1em 0;">'
-		. '<p class="mtsuav-fsp-bar-message" style="margin:0 0 0.5em;color:' . $text . ';">' . $message . '</p>'
-		. '<div class="mtsuav-fsp-bar-track" role="progressbar" aria-valuenow="' . $pct_s . '" aria-valuemin="0" aria-valuemax="100"'
+	return '<div class="fsp-bar-wrap" style="margin:1em 0;">'
+		. '<p class="fsp-bar-message" style="margin:0 0 0.5em;color:' . $text . ';">' . $message . '</p>'
+		. '<div class="fsp-bar-track" role="progressbar" aria-valuenow="' . $pct_s . '" aria-valuemin="0" aria-valuemax="100"'
 		. ' style="background:' . $bg . ';height:' . $height . 'px;border-radius:' . $radius . 'px;overflow:hidden;">'
-		. '<div class="mtsuav-fsp-bar-fill" style="width:' . $pct_s . '%;background:' . $fill . ';height:100%;border-radius:' . $radius . 'px;"></div>'
+		. '<div class="fsp-bar-fill" style="width:' . $pct_s . '%;background:' . $fill . ';height:100%;border-radius:' . $radius . 'px;"></div>'
 		. '</div></div>';
 }
 
@@ -263,8 +263,8 @@ function mtsuav_fsp_bar_html( $total, $threshold, $settings ) {
  * @param float|null $threshold_override Optional threshold override (shortcode).
  * @return string
  */
-function mtsuav_fsp_render_bar( $threshold_override = null ) {
-	$settings = mtsuav_fsp_get_settings();
+function fsp_render_bar( $threshold_override = null ) {
+	$settings = fsp_get_settings();
 	if ( 'yes' !== $settings['enabled'] ) {
 		return '';
 	}
@@ -278,7 +278,7 @@ function mtsuav_fsp_render_bar( $threshold_override = null ) {
 	if ( WC()->cart->get_cart_contents_count() <= 0 ) {
 		return '';
 	}
-	return mtsuav_fsp_bar_html( mtsuav_fsp_get_qualifying_total( $settings ), $threshold, $settings );
+	return fsp_bar_html( fsp_get_qualifying_total( $settings ), $threshold, $settings );
 }
 
 /**
@@ -287,24 +287,24 @@ function mtsuav_fsp_render_bar( $threshold_override = null ) {
  * @param array $settings Settings array.
  * @return string
  */
-function mtsuav_fsp_render_bar_sample( $settings ) {
-	return mtsuav_fsp_bar_html( 65.0, 100.0, $settings );
+function fsp_render_bar_sample( $settings ) {
+	return fsp_bar_html( 65.0, 100.0, $settings );
 }
 
 /**
- * Shortcode: [mtsuav_fsp_bar] or [mtsuav_fsp_bar threshold="100"].
+ * Shortcode: [fsp_bar] or [fsp_bar threshold="100"].
  *
  * @param array $atts Shortcode attributes.
  * @return string
  */
-function mtsuav_fsp_shortcode( $atts ) {
+function fsp_shortcode( $atts ) {
 	$atts = shortcode_atts(
 		array( 'threshold' => '' ),
 		$atts,
-		'mtsuav_fsp_bar'
+		'fsp_bar'
 	);
 	$override = '' !== trim( (string) $atts['threshold'] ) ? max( 0.0, (float) $atts['threshold'] ) : null;
-	return mtsuav_fsp_render_bar( $override );
+	return fsp_render_bar( $override );
 }
 
 /**
@@ -312,12 +312,12 @@ function mtsuav_fsp_shortcode( $atts ) {
  *
  * @return void
  */
-function mtsuav_fsp_cart_bar_before_table() {
-	$settings = mtsuav_fsp_get_settings();
+function fsp_cart_bar_before_table() {
+	$settings = fsp_get_settings();
 	if ( 'yes' !== $settings['enabled'] || 'yes' !== $settings['cart_bar'] || 'before_table' !== $settings['cart_position'] ) {
 		return;
 	}
-	echo mtsuav_fsp_render_bar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo fsp_render_bar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
 /**
@@ -325,12 +325,12 @@ function mtsuav_fsp_cart_bar_before_table() {
  *
  * @return void
  */
-function mtsuav_fsp_cart_bar_after_table() {
-	$settings = mtsuav_fsp_get_settings();
+function fsp_cart_bar_after_table() {
+	$settings = fsp_get_settings();
 	if ( 'yes' !== $settings['enabled'] || 'yes' !== $settings['cart_bar'] || 'after_table' !== $settings['cart_position'] ) {
 		return;
 	}
-	echo mtsuav_fsp_render_bar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo fsp_render_bar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
 /**
@@ -338,12 +338,12 @@ function mtsuav_fsp_cart_bar_after_table() {
  *
  * @return void
  */
-function mtsuav_fsp_cart_bar_top() {
-	$settings = mtsuav_fsp_get_settings();
+function fsp_cart_bar_top() {
+	$settings = fsp_get_settings();
 	if ( 'yes' !== $settings['enabled'] || 'yes' !== $settings['cart_bar'] || 'top' !== $settings['cart_position'] ) {
 		return;
 	}
-	echo mtsuav_fsp_render_bar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo fsp_render_bar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
 /**
@@ -351,12 +351,12 @@ function mtsuav_fsp_cart_bar_top() {
  *
  * @return void
  */
-function mtsuav_fsp_checkout_bar() {
-	$settings = mtsuav_fsp_get_settings();
+function fsp_checkout_bar() {
+	$settings = fsp_get_settings();
 	if ( 'yes' !== $settings['enabled'] || 'yes' !== $settings['checkout_bar'] ) {
 		return;
 	}
-	echo mtsuav_fsp_render_bar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo fsp_render_bar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
 /**
@@ -365,10 +365,10 @@ function mtsuav_fsp_checkout_bar() {
  * @param array $fragments Fragments array.
  * @return array
  */
-function mtsuav_fsp_cart_fragments( $fragments ) {
-	$settings = mtsuav_fsp_get_settings();
+function fsp_cart_fragments( $fragments ) {
+	$settings = fsp_get_settings();
 	if ( 'yes' === $settings['enabled'] && 'yes' === $settings['cart_bar'] ) {
-		$fragments['div.mtsuav-fsp-bar-wrap'] = mtsuav_fsp_render_bar();
+		$fragments['div.fsp-bar-wrap'] = fsp_render_bar();
 	}
 	return $fragments;
 }
@@ -378,15 +378,15 @@ function mtsuav_fsp_cart_fragments( $fragments ) {
  *
  * @return void
  */
-function mtsuav_fsp_init() {
-	add_action( 'woocommerce_before_cart_table', 'mtsuav_fsp_cart_bar_before_table' );
-	add_action( 'woocommerce_after_cart_table', 'mtsuav_fsp_cart_bar_after_table' );
-	add_action( 'woocommerce_before_cart', 'mtsuav_fsp_cart_bar_top' );
-	add_action( 'woocommerce_before_checkout_form', 'mtsuav_fsp_checkout_bar' );
-	add_filter( 'woocommerce_add_to_cart_fragments', 'mtsuav_fsp_cart_fragments' );
-	add_shortcode( 'mtsuav_fsp_bar', 'mtsuav_fsp_shortcode' );
+function fsp_init() {
+	add_action( 'woocommerce_before_cart_table', 'fsp_cart_bar_before_table' );
+	add_action( 'woocommerce_after_cart_table', 'fsp_cart_bar_after_table' );
+	add_action( 'woocommerce_before_cart', 'fsp_cart_bar_top' );
+	add_action( 'woocommerce_before_checkout_form', 'fsp_checkout_bar' );
+	add_filter( 'woocommerce_add_to_cart_fragments', 'fsp_cart_fragments' );
+	add_shortcode( 'fsp_bar', 'fsp_shortcode' );
 
 	if ( is_admin() ) {
-		mtsuav_fsp_admin_init();
+		fsp_admin_init();
 	}
 }

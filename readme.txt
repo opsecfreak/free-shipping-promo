@@ -1,4 +1,4 @@
-=== MTSUAV Free Shipping Promotion ===
+=== Free Shipping Promo for WooCommerce ===
 Contributors: mobiletechspecialists
 Tags: woocommerce, free shipping, shipping promotion, cart, checkout
 Requires at least: 6.0
@@ -14,13 +14,13 @@ Offer free shipping on orders over a set amount, with a progress bar that nudges
 
 == Description ==
 
-MTSUAV Free Shipping Promotion makes "free shipping over $X" effortless:
+Free Shipping Promo for WooCommerce makes "free shipping over $X" effortless:
 
 * Set a threshold in your shop currency and turn the promotion on.
 * One click syncs every shipping zone with a Free Shipping method set to your threshold. The plugin creates the method where it is missing and updates it where it exists. Methods that require a coupon are never touched.
 * A customizable progress bar on the cart and checkout pages shows shoppers how close they are, with separate messages for progress and for unlocking free shipping.
 * Qualification rules: measure the subtotal before or after discounts, exclude sale items, limit to (or exclude) product categories, and optionally count estimated taxes and shipping.
-* Shortcode `[mtsuav_fsp_bar]` renders the same bar anywhere: pages, posts, or widgets.
+* Shortcode `[fsp_bar]` renders the same bar anywhere: pages, posts, or widgets.
 * HPOS compatible. No conflicts with coupons. Works with taxes on or off.
 
 Settings live under WooCommerce > Settings > Free Shipping Promo. No license key, no account, no upsells.
@@ -64,4 +64,4 @@ The plugin checks the public GitHub releases page for this plugin about twice a 
 
 This plugin does not collect, store, or transmit any personal data.
 
-Automatic updates: the plugin polls the public GitHub releases API (api.github.com) for the repository opsecfreak/mtsuav-free-shipping-promo, cached for 12 hours (1 hour after a failure), to learn whether a newer version is available. The request carries a generic updater user-agent (MTSUAV-Updater plus your WordPress version). No site URL, license keys, emails, or other personal data are sent. If the check fails, nothing happens and no update is offered.
+Automatic updates: the plugin polls the public GitHub releases API (api.github.com) for the repository opsecfreak/free-shipping-promo, cached for 12 hours (1 hour after a failure), to learn whether a newer version is available. The request carries a generic updater user-agent (MTSUAV-Updater plus your WordPress version). No site URL, license keys, emails, or other personal data are sent. If the check fails, nothing happens and no update is offered.

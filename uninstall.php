@@ -1,6 +1,6 @@
 <?php
 /**
- * Uninstall handler for MTSUAV Free Shipping Promotion.
+ * Uninstall handler for Free Shipping Promo for WooCommerce.
  *
  * Removes the plugin settings option. The auto-created Free Shipping methods
  * are only deleted when the "Delete auto-created methods on uninstall"
@@ -9,12 +9,12 @@
  * Note: uninstall.php runs without plugins loaded, so WooCommerce classes
  * are unavailable here. Method cleanup uses direct database access.
  *
- * @package MTSUAV_Free_Shipping_Promo
+ * @package FSP
  */
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
-$settings = get_option( 'mtsuav_fsp_settings', array() );
+$settings = get_option( 'fsp_settings', array() );
 
 if ( is_array( $settings )
 	&& isset( $settings['remove_methods_on_uninstall'] )
@@ -40,4 +40,4 @@ if ( is_array( $settings )
 	}
 }
 
-delete_option( 'mtsuav_fsp_settings' );
+delete_option( 'fsp_settings' );
